@@ -3,14 +3,23 @@ from argparse import ArgumentParser, ArgumentError
 from typing import NamedTuple, Optional, List
 
 class Options(NamedTuple):
+    '''
+    Tuple for storing configuration constants
+    '''
     target: str
     verbose: bool
 
 class Client(NamedTuple):
+    '''
+    Tuple representation of Client IP-MAC address pairs
+    '''
     ip: str
     mac: str
 
 def get_args() -> 'Options':
+    '''
+    Parses command arguments for initialization of config options
+    '''
     parser = ArgumentParser()
     try:
         parser.add_argument('-t', '--target', dest='target', help='IP range for target device(s) or network.')
