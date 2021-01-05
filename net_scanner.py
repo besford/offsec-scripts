@@ -49,6 +49,9 @@ def scan(ip_range: str, time: int) -> List['Client']:
     return clients
 
 def print_results(results: List['Client']) -> None:
+    '''
+    Outputs list of clients to standard output
+    '''
     print('IP''s \t\t\t MAC''s')
     print('-----------------------------')
     for client in results:
