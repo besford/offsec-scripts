@@ -76,5 +76,4 @@ def main(*args, **kwargs) -> None:
     except (KeyboardInterrupt, InterruptedError):
         print('\n[+] Detected interrupt. Exiting...')
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
