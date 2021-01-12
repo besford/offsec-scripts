@@ -1,6 +1,6 @@
 from scapy.all import IP, DNSRR, DNSQR, DNS, UDP
 from netfilterqueue import NetfilterQueue, Packet
-from typing import NamedTuple
+from typing import NamedTuple, Tuple
 from argparse import ArgumentParser, ArgumentError
 
 class Options(NamedTuple):
@@ -34,7 +34,7 @@ def get_args() -> 'Options':
             error('An error occurred while parsing input arguments.')
         else:
             error(f'An error occurred while parsing input arguments: {str(e)}')
-    return Options((), '', False)
+    return Options((''), '', False)
 
 def error(msg: str) -> None:
     '''
