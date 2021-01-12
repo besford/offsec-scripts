@@ -1,4 +1,4 @@
-from scapy.all import IP, TCP, Raw, IP
+from scapy.all import IP, TCP, Raw, IP, Packet
 from argparse import ArgumentParser, ArgumentError
 from netfilterqueue import NetfilterQueue, Packet
 from re import sub, search
@@ -12,7 +12,6 @@ class Options(NamedTuple):
     sslstrip: bool
     verbose: bool
 
-acks = []
 
 def get_args() -> 'Options':
     '''
@@ -21,8 +20,8 @@ def get_args() -> 'Options':
     parser = ArgumentParser()
     try:
         parser.add_argument('-p', '--payload', dest='payload', help='Content to inject into vulnerable traffic')
-        parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging for debugging purposes.')
         parser.add_argument('-s', '--sslstrip', action='store_true', help='Enables sslstripping for https traffic.')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging for debugging purposes.')
         options = parser.parse_args()
         if not options.payload:
             options.payload = "<script>alert('test');</script>"
@@ -33,9 +32,9 @@ def get_args() -> 'Options':
         return Options(options.payload, options.sslstrip, options.verbose)
     except ArgumentError as e:
         error('An error occurred while parsing input arguments.')
-        return
+    return Options('', False, False)
 
-def update_load(packet: 'Packet', new_load: bytes) -> 'Ether':
+def update_load(packet: 'Packet', new_load: bytes) -> 'Packet':
     '''
     Replaces the load of a given packet with new_load.
     '''
@@ -75,7 +74,6 @@ def proc_packet(packet: 'Packet') -> None:
                 packet.set_payload(bytes(new_packet))
         except (UnicodeDecodeError, UnicodeEncodeError) as e:
             pass
-
     packet.accept()
 
 def error(msg: str) -> None:

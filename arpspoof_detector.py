@@ -52,7 +52,7 @@ def proc_arp_packets(packet) -> None:
         except IndexError:
             pass
 
-def sniff_arp(interface: str):
+def sniff_arp(interface: str) -> None:
     '''
     Sniffs packets sent through a given network interface. Detected arp packets are further
     processed to determine discrepancies.

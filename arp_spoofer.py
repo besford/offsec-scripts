@@ -11,6 +11,7 @@ class Options(NamedTuple):
     gateway: str
     verbose: bool
 
+
 def get_args() -> 'Options':
     '''
     Parses command arguments for initialization of config options

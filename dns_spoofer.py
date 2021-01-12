@@ -34,7 +34,7 @@ def get_args() -> 'Options':
             error('An error occurred while parsing input arguments.')
         else:
             error(f'An error occurred while parsing input arguments: {str(e)}')
-        return
+    return Options((), '', False)
 
 def error(msg: str) -> None:
     '''
