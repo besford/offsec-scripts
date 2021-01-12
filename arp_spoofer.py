@@ -1,4 +1,4 @@
-from scapy.all import ARP, Ether, srp, send
+from scapy.all import ARP, Ether, srp, send, SndRcvList
 from argparse import ArgumentParser, ArgumentError
 from typing import NamedTuple
 from time import sleep
@@ -28,9 +28,9 @@ def get_args() -> 'Options':
         return Options(options.target, options.gateway, options.verbose)
     except ArgumentError as e:
         error('An error occurred while parsing input arguments.')
-        return
+    return Options('','',False)
 
-def get_mac(ip: str) -> None:
+def get_mac(ip: str) -> 'SndRcvList':
     '''
     Determines the corresponding MAC address for a given IP address
     '''
