@@ -3,10 +3,12 @@ from typing import NamedTuple, Union, Optional, Tuple
 from argparse import ArgumentParser, ArgumentError
 
 class Options(NamedTuple):
+    '''
+    Tuple for storing configuration constants.
+    '''
     interface: str
     verbose: bool
 
-acks = []
 
 def get_args() -> 'Options':
     '''
@@ -24,9 +26,9 @@ def get_args() -> 'Options':
         return Options(options.interface, options.verbose)
     except ArgumentError as e:
         error('An error occurred while parsing input arguments.')
-        return
+    return Options('', False)
 
-def get_mac(ip: str) -> None:
+def get_mac(ip: str) -> str:
     '''
     Determines the corresponding MAC address for a given IP address
     '''

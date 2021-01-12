@@ -1,4 +1,4 @@
-from scapy.all import ARP, Ether, srp, send, SndRcvList
+from scapy.all import ARP, Ether, srp, send
 from argparse import ArgumentParser, ArgumentError
 from typing import NamedTuple
 from time import sleep
@@ -30,7 +30,7 @@ def get_args() -> 'Options':
         error('An error occurred while parsing input arguments.')
     return Options('','',False)
 
-def get_mac(ip: str) -> 'SndRcvList':
+def get_mac(ip: str) -> str:
     '''
     Determines the corresponding MAC address for a given IP address
     '''
@@ -39,6 +39,7 @@ def get_mac(ip: str) -> 'SndRcvList':
     broadcast = Ether(dst='ff:ff:ff:ff:ff:ff')
     arp_req_broadcast = broadcast / arp_req
     resp_list = srp(arp_req_broadcast, timeout=1, verbose=False)[0]
+    print(type(resp_list[0][1].hwsrc))
     return resp_list[0][1].hwsrc
 
 def spoof(target_ip: str, source_ip: str) -> None:
