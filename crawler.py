@@ -33,7 +33,7 @@ class Index:
     def append_subdom(self, subdomain: str) -> None:
         self.found_subdoms.add(subdomain)
 
-    def is_indexed(self, url: str) -> bool:
+    def is_indexed(self, url: str) -> None:
         return (url in self.found_dirs) or (url in self.found_doms) or (url in self.found_subdoms)
 
 
@@ -78,7 +78,7 @@ class Crawler(object):
             if '#' in link:
                 link = link.split('#')[0]
             #print('10.0.2.17' in link and link not in self.found_doms)
-            if config.target.split('//')[-1] in link and link not self.__in_index(link):
+            if config.target.split('//')[-1] in link and not self.__in_index(link):
                 self.__index_dom(link)
                 print(f'[+] urls >> {link}')
                 self.discover_urls(link)
@@ -103,7 +103,7 @@ class Crawler(object):
                     print(f'[+] Directory found >> {test_url}')
                     self.__index_dir(cur_dir)
 
-    def print_summary(self):
+    def print_summary(self) -> None:
         pass
 
 
