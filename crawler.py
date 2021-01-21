@@ -20,6 +20,9 @@ class Options(NamedTuple):
 
 @dataclass
 class Index:
+    '''
+    Stores found directories, domains, and subdomains.
+    '''
     found_dirs: set
     found_doms: set
     found_subdoms: set
