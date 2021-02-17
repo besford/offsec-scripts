@@ -6,6 +6,7 @@ from time import time_ns
 from bs4 import BeautifulSoup
 from requests import Session
 
+
 ERRORS = {
     # MySQL and Postgres
     "you have an error in your sql syntax;",
@@ -24,6 +25,7 @@ class Options(NamedTuple):
     target_url: str
     xss_payload: str
     sqli_payload: str
+    cmd_payload: str
     verbose: bool
 
 
@@ -34,10 +36,11 @@ class Scanner(object):
     target_url: str
     target_links: Set[str]
     blacklisted_links: Set[str]
+    cmd_payload: str
     xss_payload: str
     sqli_payload: str
 
-    def __init__(self, url: str = '', ignore_links: List[str] = [''], xss_payload: str = '', sqli_payload: str = '') -> None:
+    def __init__(self, url: str = '', ignore_links: List[str] = [''], xss_payload: str = '', sqli_payload: str = '', cmd_payload: str = '') -> None:
         self.session = Session()
         self.target_url = url
         self.target_links = set()
@@ -47,7 +50,12 @@ class Scanner(object):
             self.xss_payload = "<sCript>alert('hi!!!')</scriPt>"
         else:
             self.xss_payload = xss_payload
-        
+
+        if cmd_payload == '':
+            self.cmd_payload = 'echo \'vulnerable\''
+        else:
+            self.cmd_payload = cmd_payload
+
         if sqli_payload == '':
             #self.sqli_payload = "'AND sleep(30)#"
             self.sqli_payload = "(select(0)from(select(sleep(60)))v)/*\'+(select(0)from(select(sleep(60)))v)+\'\"+(select(0)from(select(sleep(60)))v)+\"*/"
@@ -111,6 +119,12 @@ class Scanner(object):
         if method == 'post': return self.session.post(url=post_url, data=post_data)
         return self.session.get(url=post_url, params=post_data)
 
+    def is_cmd_in_url(self, url: str = '') -> bool:
+        raise NotImplementedError('Todo')
+
+    def is_cmd_in_form(self, url: str = '') -> bool:
+        raise NotImplementedError('Todo')
+
     def is_xss_in_url(self, url: str = '') -> bool:
         '''
         Determines whether or not a given url contains a potential cross-site scripting vulnerability.
@@ -152,7 +166,6 @@ class Scanner(object):
         resp = self.submit_form(form, self.sqli_payload.encode(), url)
         end = time_ns()
         resp_delay = end - start
-        #rint(resp_delay)
         for error in ERRORS:
             if error in resp.content.decode().lower(): return True
         if resp_delay >= 30000000: return True
@@ -173,7 +186,6 @@ class Scanner(object):
                     self.num_vulns += 1
                     print(''.center(80, '-'))
                 if self.is_sqli_in_form(form, link):
-                    # Todo
                     print(f'[+] Potential SQL Injection vulnerability found in {link} for form: \n{form}')
                     self.num_vulns += 1
             if '=' in link:
@@ -184,7 +196,6 @@ class Scanner(object):
                     self.num_vulns += 1
                     print(''.center(80, '-'))
                 if self.is_sqli_in_url(link):
-                    # Todo
                     print(f'[+] Potential SQL Injection vulnerability found in {link}')
                     self.num_vulns += 1
 
